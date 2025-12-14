@@ -1,0 +1,26 @@
+[tools]
+java = "21"
+gradle = "8.13"
+
+[env]
+ANDROID_HOME = "{{env.HOME}}/android-sdk"
+
+[tasks.build]
+description = "Build the Debug APK"
+run = "./gradlew assembleDebug"
+
+[tasks.test]
+description = "Run all unit tests"
+run = "./gradlew test"
+
+[tasks.lint]
+description = "Run lint checks"
+run = "./gradlew lintDebug"
+
+[tasks.clean]
+description = "Clean the build directory"
+run = "./gradlew clean"
+
+[tasks.release]
+description = "Tag version for release (triggers CI)"
+run = "git tag v$(grep 'versionName =' app/build.gradle.kts | cut -d'\"' -f2) && git push origin --tags"
