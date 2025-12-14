@@ -28,7 +28,7 @@ jobs:
           
       - name: Build Release APK
         env:
-          SIGNING_KEY_STORE_PATH: release.keystore
+          SIGNING_KEY_STORE_PATH: ${{ github.workspace }}/release.keystore
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
