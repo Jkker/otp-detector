@@ -6,6 +6,10 @@ gradle = "8.13"
 ANDROID_HOME = "{{env.HOME}}/android-sdk"
 
 [tasks.build]
+description = "Build the Release APK (match CI)"
+run = "./gradlew assembleRelease"
+
+[tasks.debug]
 description = "Build the Debug APK"
 run = "./gradlew assembleDebug"
 
