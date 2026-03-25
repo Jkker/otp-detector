@@ -17,11 +17,24 @@ android {
 
     signingConfigs {
         create("release") {
-            val keyStorePath = System.getenv("SIGNING_KEY_STORE_PATH") ?: "release.keystore"
-            storeFile = file(keyStorePath)
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD") ?: "android"
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS") ?: "android"
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD") ?: "android"
+            // 1. Define the Standard Location
+            val homeDir = System.getProperty("user.home")
+            val keyStoreFile = java.io.File("$homeDir/.config/android-signing/release.jks")
+
+            // 2. Load passwords from Global Gradle Properties (~/.gradle/gradle.properties)
+            // Gradle automatically loads these into the project scope!
+            val keyStorePass = project.findProperty("ORG_KEYSTORE_PASS") as? String
+            val keyAliasName = project.findProperty("ORG_KEY_ALIAS") as? String
+            val keyAliasPass = project.findProperty("ORG_KEY_ALIAS_PASS") as? String
+
+            if (keyStoreFile.exists() && keyStorePass != null) {
+                storeFile = keyStoreFile
+                storePassword = keyStorePass
+                keyAlias = keyAliasName
+                keyPassword = keyAliasPass
+            } else {
+                println("⚠️ Release Keystore not found at $keyStoreFile. Skipping signing config.")
+            }
         }
     }
 
