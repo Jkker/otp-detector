@@ -6,14 +6,19 @@ kotlin = "2.1.21"
 
 [env]
 ANDROID_HOME = "{{env.HOME}}/android-sdk"
+ANDROID_SIGNING_ITEM = "ANDROID_APP_SIGNING"
+
+[tasks.dev]
+description = "Build debug APK without release signing credentials"
+run = "./gradlew assembleDebug"
 
 [tasks.build]
-description = "Build the Release APK (match CI)"
-run = "./gradlew assembleRelease"
+description = "Build signed release APK from rbw Android signing item"
+run = "bash ./scripts/android-release-build.sh"
 
-[tasks.debug]
-description = "Build the Debug APK"
-run = "./gradlew assembleDebug"
+[tasks.setup-github-action-secrets]
+description = "Copy Android signing secrets from rbw to GitHub Actions secrets"
+run = "bash ./scripts/setup-github-secrets.sh"
 
 [tasks.test]
 description = "Run all unit tests"

@@ -1,45 +1,58 @@
 name: Android Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          
+          distribution: temurin
+          java-version: "21"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        
-      - name: Decode Keystore
+
+      - name: Restore Android release keystore
+        shell: bash
         env:
-          SIGNING_KEY_STORE_BASE64: ${{ secrets.SIGNING_KEY_STORE_BASE64 }}
+          ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
         run: |
-          echo $SIGNING_KEY_STORE_BASE64 | base64 -d > release.keystore
-          
-      - name: Build Release APK
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/android-signing"
+          printf '%s' "$ANDROID_RELEASE_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/android-signing/release.p12"
+          chmod 600 "$RUNNER_TEMP/android-signing/release.p12"
+
+      - name: Build signed release APK
+        shell: bash
         env:
-          SIGNING_KEY_STORE_PATH: ${{ github.workspace }}/release.keystore
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/android-signing/release.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_TYPE: ${{ secrets.ANDROID_RELEASE_KEYSTORE_TYPE }}
         run: ./gradlew assembleRelease
-        
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/release/app-release.apk
           generate_release_notes: true
