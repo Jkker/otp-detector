@@ -1,6 +1,8 @@
 [tools]
-java = "21"
-gradle = "8.13"
+android-sdk = "1.0"
+java = "21.0.2"
+gradle = "8.14.4"
+kotlin = "2.1.21"
 
 [env]
 ANDROID_HOME = "{{env.HOME}}/android-sdk"
